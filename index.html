@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Space Program</title>
+    <title>Mini Space Program - Remastered</title>
     <style>
         body {
             margin: 0;
-            background-color: #0b0e14;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: #05070c;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,234 +18,268 @@
             overflow: hidden;
         }
         h1 {
-            margin: 5px 0;
-            font-size: 1.5rem;
-            color: #4af626;
-            text-shadow: 0 0 5px rgba(74,246,38,0.5);
+            margin: 10px 0;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
         }
         #gameContainer {
             position: relative;
-            border: 2px solid #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            background: #000;
         }
         canvas {
-            background: radial-gradient(circle at center, #1a1c29 0%, #050508 100%);
             display: block;
+            border-radius: 8px;
         }
         .ui-panel {
             position: absolute;
-            background: rgba(10, 15, 25, 0.85);
-            border: 1px solid #4af626;
-            padding: 10px;
-            border-radius: 5px;
+            background: rgba(10, 16, 26, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            padding: 12px;
+            border-radius: 6px;
             font-size: 12px;
             pointer-events: none;
-            box-shadow: 0 0 10px rgba(74,246,38,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
         }
         #telemetry {
-            top: 10px;
-            left: 10px;
-            width: 220px;
+            top: 15px;
+            left: 15px;
+            width: 240px;
         }
         #controls {
-            bottom: 10px;
-            left: 10px;
-            width: 220px;
+            bottom: 15px;
+            left: 15px;
+            width: 240px;
         }
         #instructions {
-            top: 10px;
-            right: 10px;
-            width: 240px;
+            top: 15px;
+            right: 15px;
+            width: 260px;
+        }
+        .panel-header {
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #00ffcc;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            text-transform: uppercase;
         }
         .stat-line {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
-        .label { color: #8ab4f8; }
-        .value { color: #4af626; font-weight: bold; }
-        .alert { color: #ff5555; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
-        #instructions ul { margin: 5px 0; padding-left: 15px; }
-        #instructions li { margin-bottom: 3px; }
+        .label { color: #94a3b8; }
+        .value { color: #fff; font-family: monospace; font-size: 13px; }
+        .success { color: #00ffcc; font-weight: bold; text-shadow: 0 0 5px rgba(0,255,204,0.4); }
+        .alert { color: #ff4a4a; font-weight: bold; animation: blink 0.8s infinite; }
+        @keyframes blink { 50% { opacity: 0.4; } }
+        #instructions ul { margin: 6px 0; padding-left: 18px; }
+        #instructions li { margin-bottom: 4px; color: #cbd5e1; }
+        .accent-key { color: #ffaa00; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>🚀 MINI SPACE PROGRAM 🚀</h1>
+    <h1>MINI SPACE PROGRAM</h1>
     
     <div id="gameContainer">
+        <!-- Telemetry Panel -->
         <div id="telemetry" class="ui-panel">
-            <div style="font-weight:bold; border-bottom:1px solid #4af626; margin-bottom:5px; padding-bottom:2px; text-align:center;">FLIGHT TELEMETRY</div>
-            <div class="stat-line"><span class="label">Mission Status:</span><span id="status-val" class="value">Pre-Launch</span></div>
+            <div class="panel-header">Flight Telemetry</div>
+            <div class="stat-line"><span class="label">Status:</span><span id="status-val" class="value">Pre-Launch</span></div>
             <div class="stat-line"><span class="label">Altitude:</span><span id="alt-val" class="value">0 m</span></div>
-            <div class="stat-line"><span class="label">Apoapsis (Max Alt):</span><span id="ap-val" class="value">0 m</span></div>
+            <div class="stat-line"><span class="label">Apoapsis (Max):</span><span id="ap-val" class="value">0 m</span></div>
             <div class="stat-line"><span class="label">Velocity:</span><span id="vel-val" class="value">0 m/s</span></div>
-            <div class="stat-line"><span class="label">Heading:</span><span id="hdg-val" class="value">90° (Up)</span></div>
-            <div class="stat-line"><span class="label">Fuel Remaining:</span><span id="fuel-val" class="value">100%</span></div>
-            <div style="margin-top: 8px; height: 8px; background: #222; border-radius: 4px; overflow: hidden;">
-                <div id="fuel-bar" style="width: 100%; height: 100%; background: #4af626;"></div>
+            <div class="stat-line"><span class="label">Heading:</span><span id="hdg-val" class="value">90°</span></div>
+            <div class="stat-line"><span class="label">Fuel Core:</span><span id="fuel-val" class="value">100%</span></div>
+            <div style="margin-top: 8px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                <div id="fuel-bar" style="width: 100%; height: 100%; background: linear-gradient(90deg, #00ffcc, #0099ff); box-shadow: 0 0 8px #00ffcc;"></div>
             </div>
         </div>
 
+        <!-- Instructions Panel -->
         <div id="instructions" class="ui-panel">
-            <div style="font-weight:bold; border-bottom:1px solid #4af626; margin-bottom:5px; padding-bottom:2px; text-align:center;">MISSION BRIEFING</div>
-            <p style="margin: 4px 0;">Escape Earth's gravity pull and establish a stable orbit!</p>
-            <strong>Controls:</strong>
+            <div class="panel-header">Mission Directives</div>
+            <p style="margin: 4px 0 10px 0; color: #cbd5e1; line-height: 1.4;">Break past the blue atmospheric threshold line ($100\text{ km}$) and generate sideways horizontal velocity to loop into a stable locked orbit.</p>
+            <div class="panel-header" style="font-size:11px; margin-top:10px;">Controls</div>
             <ul>
-                <li><b style="color:#ffaa00">UP ARROW</b>: Fire Rocket Engine</li>
-                <li><b style="color:#ffaa00">LEFT ARROW</b>: Rotate Counter-Clockwise</li>
-                <li><b style="color:#ffaa00">RIGHT ARROW</b>: Rotate Clockwise</li>
-                <li><b style="color:#ffaa00">R KEY</b>: Restart Mission</li>
+                <li><span class="accent-key">UP ARROW</span> : Main Booster Ignition</li>
+                <li><span class="accent-key">LEFT / RIGHT</span> : Pitch Vector Control</li>
+                <li><span class="accent-key">R KEY</span> : Rapid Emergency Reset</li>
             </ul>
-            <strong>Goal:</strong> Get altitude > 100km to clear atmosphere and fly sideways fast enough to achieve a stable circular orbit. Don't fall back down!
         </div>
 
+        <!-- Nav Ball / Flight Advice Guide -->
         <div id="controls" class="ui-panel">
-            <div style="font-weight:bold; border-bottom:1px solid #4af626; margin-bottom:5px; padding-bottom:2px; text-align:center;">NAV-BALL GUIDE</div>
-            <div style="font-size: 11px; color: #aaa; line-height: 1.3;">
-                • Pitch over to 0° (Right) gradually as you ascend to gain horizontal orbital velocity.<br>
-                • Keep your speed high to avoid dropping back into the atmosphere!
+            <div class="panel-header">Flight Systems Guide</div>
+            <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                • Initiate a gradual gravity turn rightward ($45^\circ$) once climbing past $30\text{,000 m}$.<br>
+                • Flatten completely to $0^\circ$ inside the vacuum of space to gather orbital speed.
             </div>
         </div>
 
-        <canvas id="spaceCanvas" width="900" height="650"></canvas>
+        <canvas id="spaceCanvas" width="960" height="680"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Physics constants (scaled for gameplay fun)
-        const G = 0.15;            // Gravitational constant
-        const EARTH_MASS = 120000; // Mass of Earth
-        const EARTH_RADIUS = 160;  // Radius of the planet
-        const ATMOSPHERE_HEIGHT = 100; // Extra height where drag applies
+        // Physics Engine Constants (Rebalanced for launch liftoff authority)
+        const G = 0.22;            
+        const EARTH_MASS = 140000; 
+        const EARTH_RADIUS = 150;  
+        const ATMOSPHERE_HEIGHT = 100; 
         
-        // Planet position (Center of screen view)
         const planetX = canvas.width / 2;
         const planetY = canvas.height / 2;
 
-        // Game State Variables
-        let rocket = {
-            x: planetX,
-            y: planetY - EARTH_RADIUS - 5,
-            vx: 0,
-            vy: 0,
-            angle: -Math.PI / 2, // Facing straight up initially
-            fuel: 1000,
-            maxFuel: 1000,
-            thrust: 0.08,
-            mass: 1,
-            alive: true,
-            isOrbiting: false,
-            highestAlt: 0
-        };
-
-        let keys = {};
-        let stars = [];
-        let flightPath = [];
-
-        // Generate starfield
-        for (let i = 0; i < 150; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 1.5
-            });
-        }
-
-        // Event Listeners
-        window.addEventListener('keydown', e => {
-            keys[e.key] = true;
-            if (e.key.toLowerCase() === 'r') resetGame();
-        });
-        window.addEventListener('keyup', e => { keys[e.key] = false; });
+        let rocket, keys, stars, flightPath, particles;
 
         function resetGame() {
             rocket = {
                 x: planetX,
-                y: planetY - EARTH_RADIUS - 5,
+                y: planetY - EARTH_RADIUS - 6, // Spawn cleanly standing on the crust surface
                 vx: 0,
                 vy: 0,
-                angle: -Math.PI / 2,
-                fuel: 1000,
-                maxFuel: 1000,
-                thrust: 0.08,
-                mass: 1,
+                angle: -Math.PI / 2, 
+                fuel: 1200,
+                maxFuel: 1200,
+                thrust: 0.16, // Doubled thrust parameter to guarantee instant takeoff authority
+                mass: 1.0,
                 alive: true,
                 isOrbiting: false,
                 highestAlt: 0
             };
+            keys = {};
             flightPath = [];
+            particles = [];
+        }
+
+        // Initialize Starfield Map
+        stars = [];
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 1.8,
+                glow: Math.random() * 0.5 + 0.5
+            });
+        }
+
+        // Keyboard Action Handlers
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key.toLowerCase() === 'r') {
+                resetGame();
+            }
+        });
+        window.addEventListener('keyup', e => { 
+            keys[e.key] = false; 
+        });
+
+        function createExhaustParticle(x, y, angle, speed) {
+            let spread = angle + Math.PI + (Math.random() * 0.4 - 0.2);
+            let pSpeed = speed + Math.random() * 2;
+            particles.push({
+                x: x - Math.cos(angle) * 12,
+                y: y - Math.sin(angle) * 12,
+                vx: Math.cos(spread) * pSpeed,
+                vy: Math.sin(spread) * pSpeed,
+                life: 1.0,
+                decay: Math.random() * 0.04 + 0.03,
+                size: Math.random() * 4 + 2,
+                color: Math.random() > 0.4 ? '#ff5500' : '#ffcc00'
+            });
         }
 
         function updatePhysics() {
             if (!rocket.alive) return;
 
-            // Calculate distance vector to planet center
             let dx = planetX - rocket.x;
             let dy = planetY - rocket.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
 
-            // Check Collision / Landing
-            if (distance <= EARTH_RADIUS + 2) {
-                let speed = Math.sqrt(rocket.vx * rocket.vx + rocket.vy * rocket.vy);
-                if (speed > 1.5) {
-                    rocket.alive = false; // Crashed!
-                } else {
-                    // Safe touchdown/landing reset speed
-                    rocket.vx = 0;
-                    rocket.vy = 0;
-                    rocket.x = planetX + (dx / distance) * -EARTH_RADIUS;
-                    rocket.y = planetY + (dy / distance) * -EARTH_RADIUS;
-                }
-                return;
-            }
-
-            // Gravity Calculation: F = G * M / r^2
+            // Gravity Calculation
             let gravityForce = (G * EARTH_MASS) / (distance * distance);
             let ax = (dx / distance) * gravityForce;
             let ay = (dy / distance) * gravityForce;
 
-            // Atmospheric Drag
+            // Crust Touchdown & Collision Logic
+            if (distance <= EARTH_RADIUS + 3) {
+                let speed = Math.sqrt(rocket.vx * rocket.vx + rocket.vy * rocket.vy);
+                if (speed > 1.8) {
+                    rocket.alive = false; 
+                } else {
+                    rocket.vx = 0;
+                    rocket.vy = 0;
+                    // Pin firmly to the outer surface ring
+                    rocket.x = planetX - (dx / distance) * (EARTH_RADIUS + 1);
+                    rocket.y = planetY - (dy / distance) * (EARTH_RADIUS + 1);
+                }
+                // If on ground and not holding thrust, cancel gravity forces pulling ship inside core
+                if (!keys['ArrowUp']) return;
+            }
+
+            // Atmospheric Air Drag Velocity Coefficients
             let altitude = distance - EARTH_RADIUS;
-            if (altitude < ATMOSPHERE_HEIGHT) {
-                let dragFactor = 0.002 * (1 - altitude / ATMOSPHERE_HEIGHT);
+            if (altitude < ATMOSPHERE_HEIGHT && altitude > 0) {
+                let dragFactor = 0.0025 * (1 - altitude / ATMOSPHERE_HEIGHT);
                 rocket.vx *= (1 - dragFactor);
                 rocket.vy *= (1 - dragFactor);
             }
 
-            // Engine Thrust
+            // Engine Active Thrust Systems
             if (keys['ArrowUp'] && rocket.fuel > 0) {
                 rocket.vx += Math.cos(rocket.angle) * rocket.thrust;
                 rocket.vy += Math.sin(rocket.angle) * rocket.thrust;
-                rocket.fuel -= 1.5;
+                rocket.fuel -= 1.8;
+                
+                // Spawn exhaust graphics
+                let currentSpeed = Math.sqrt(rocket.vx * rocket.vx + rocket.vy * rocket.vy);
+                for(let i=0; i<3; i++) {
+                    createExhaustParticle(rocket.x, rocket.y, rocket.angle, currentSpeed);
+                }
             }
 
-            // Steering / Rotation
-            if (keys['ArrowLeft']) rocket.angle -= 0.04;
-            if (keys['ArrowRight']) rocket.angle += 0.04;
+            // Reaction Control Wheel Pitch Steering
+            if (keys['ArrowLeft']) rocket.angle -= 0.045;
+            if (keys['ArrowRight']) rocket.angle += 0.045;
 
-            // Apply Accelerations
+            // Append physics step transformations
             rocket.vx += ax;
             rocket.vy += ay;
-
-            // Update Position
             rocket.x += rocket.vx;
             rocket.y += rocket.vy;
 
-            // Record path tracking
-            if (Math.random() < 0.3) {
-                flightPath.push({x: rocket.x, y: rocket.y});
-                if (flightPath.length > 300) flightPath.shift();
+            // Particle Physics Updates
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) particles.splice(i, 1);
             }
 
-            // Track Orbit status criteria
+            // Ribbon Trail Trajectory Plotter
+            if (altitude > 2 && Math.random() < 0.4) {
+                flightPath.push({x: rocket.x, y: rocket.y});
+                if (flightPath.length > 250) flightPath.shift();
+            }
+
+            // Stable Orbital Evaluation Rules
             let velocity = Math.sqrt(rocket.vx * rocket.vx + rocket.vy * rocket.vy);
-            let perfectOrbitVelocity = Math.sqrt((G * EARTH_MASS) / distance);
+            let neededOrbitVelocity = Math.sqrt((G * EARTH_MASS) / distance);
             
-            if (altitude > ATMOSPHERE_HEIGHT && Math.abs(velocity - perfectOrbitVelocity) < 0.6) {
+            if (altitude > ATMOSPHERE_HEIGHT && Math.abs(velocity - neededOrbitVelocity) < 0.65) {
                 rocket.isOrbiting = true;
             } else if (altitude < ATMOSPHERE_HEIGHT) {
                 rocket.isOrbiting = false;
@@ -278,106 +312,134 @@
 
             let statusEl = document.getElementById('status-val');
             if (!rocket.alive) {
-                statusEl.innerText = "CRASHED! Press 'R' to restart.";
+                statusEl.innerText = "CRASHED! [R] to Reset";
                 statusEl.className = "value alert";
             } else if (rocket.isOrbiting) {
-                statusEl.innerText = "STABLE ORBIT ACHIEVED! 🎉";
+                statusEl.innerText = "STABLE ORBIT STABILIZED";
+                statusEl.className = "value success";
+            } else if (altitude <= 1) {
+                statusEl.innerText = "Grounded / Ready";
                 statusEl.className = "value";
-                statusEl.style.color = "#00ffcc";
-            } else if (altitude === 0) {
-                statusEl.innerText = "Pre-Launch / Grounded";
-                statusEl.className = "value";
+                statusEl.style.color = "#94a3b8";
             } else if (altitude < ATMOSPHERE_HEIGHT) {
-                statusEl.innerText = "Atmospheric Flight";
+                statusEl.innerText = "Atmosphere Strata Flight";
                 statusEl.className = "value";
                 statusEl.style.color = "#ffaa00";
             } else {
-                statusEl.innerText = "Sub-orbital Spaceflight";
+                statusEl.innerText = "Exosphere Sub-orbit Space";
                 statusEl.className = "value";
-                statusEl.style.color = "#8ab4f8";
+                statusEl.style.color = "#0099ff";
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Stars
-            ctx.fillStyle = '#ffffff';
+            // Render Deep Space Stars Spacefield
             stars.forEach(star => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.glow})`;
                 ctx.fillRect(star.x, star.y, star.size, star.size);
             });
 
-            // Draw Atmosphere Zone Ring
+            // Atmospheric Zone Vector Field Border Ring
             ctx.beginPath();
             ctx.arc(planetX, planetY, EARTH_RADIUS + ATMOSPHERE_HEIGHT, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(30, 70, 150, 0.08)';
+            let atmosGlow = ctx.createRadialGradient(planetX, planetY, EARTH_RADIUS, planetX, planetY, EARTH_RADIUS + ATMOSPHERE_HEIGHT);
+            atmosGlow.addColorStop(0, 'rgba(0, 153, 255, 0.15)');
+            atmosGlow.addColorStop(0.8, 'rgba(0, 255, 204, 0.05)');
+            atmosGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = atmosGlow;
             ctx.fill();
-
-            // Draw Planet (Earth-like)
+            
             ctx.beginPath();
-            ctx.arc(planetX, planetY, EARTH_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = '#1d3557';
-            ctx.fill();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = '#457b9d';
+            ctx.arc(planetX, planetY, EARTH_RADIUS + ATMOSPHERE_HEIGHT, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
             ctx.stroke();
+            ctx.setLineDash([]); // Reset line styles
 
-            // Draw landmasses
-            ctx.fillStyle = '#2a9d8f';
-            ctx.beginPath(); ctx.arc(planetX - 40, planetY - 30, 35, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(planetX + 50, planetY + 20, 45, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(planetX - 20, planetY + 50, 25, 0, Math.PI*2); ctx.fill();
-
-            // Draw Flight Trail Ribbon
+            // Draw Ribbon Vector Navigation Trajectory Trails
             ctx.beginPath();
-            ctx.strokeStyle = 'rgba(74, 246, 38, 0.4)';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+            ctx.lineWidth = 2;
             for(let i=0; i<flightPath.length; i++) {
                 if(i===0) ctx.moveTo(flightPath[i].x, flightPath[i].y);
                 else ctx.lineTo(flightPath[i].x, flightPath[i].y);
             }
             ctx.stroke();
 
-            // Draw Rocket
+            // Render Exhaust Flame Smoke Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0; // Restore global opacity levels
+
+            // Draw Core Planet Spherical Geometry
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, EARTH_RADIUS, 0, Math.PI * 2);
+            let planetGradient = ctx.createRadialGradient(planetX - 30, planetY - 30, 10, planetX, planetY, EARTH_RADIUS);
+            planetGradient.addColorStop(0, '#1e293b');
+            planetGradient.addColorStop(0.8, '#0f172a');
+            planetGradient.addColorStop(1, '#020617');
+            ctx.fillStyle = planetGradient;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, EARTH_RADIUS, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Earth Continental Crust Maps
+            ctx.fillStyle = 'rgba(0, 255, 204, 0.12)';
+            ctx.beginPath(); ctx.arc(planetX - 45, planetY - 40, 40, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(planetX + 60, planetY + 30, 50, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(planetX - 30, planetY + 60, 30, 0, Math.PI*2); ctx.fill();
+
+            // Draw Rocket Vehicle Assembly
             if (rocket.alive) {
                 ctx.save();
                 ctx.translate(rocket.x, rocket.y);
                 ctx.rotate(rocket.angle);
 
-                // Rocket Body
-                ctx.fillStyle = '#e0e0e0';
-                ctx.fillRect(-10, -5, 20, 10);
+                // Rear Modular Engine Bell
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(-12, -3, 3, 6);
+
+                // Main Core Fuel Hull Tank
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(-9, -5, 18, 10);
                 
-                // Nose Cone
-                ctx.fillStyle = '#e63946';
+                // Thermal Aerodynamic Nose Cone
+                ctx.fillStyle = '#00ffcc';
                 ctx.beginPath();
-                ctx.moveTo(10, -5);
+                ctx.moveTo(9, -5);
                 ctx.lineTo(20, 0);
-                ctx.lineTo(10, 5);
+                ctx.lineTo(9, 5);
                 ctx.fill();
 
-                // Fins
-                ctx.fillStyle = '#457b9d';
+                // Stabilizer Tail Wings
+                ctx.fillStyle = '#334155';
                 ctx.beginPath();
-                ctx.moveTo(-10, -5); ctx.lineTo(-15, -9); ctx.lineTo(-5, -5); ctx.fill();
+                ctx.moveTo(-9, -5); ctx.lineTo(-14, -10); ctx.lineTo(-4, -5); ctx.fill();
                 ctx.beginPath();
-                ctx.moveTo(-10, 5); ctx.lineTo(-15, 9); ctx.lineTo(-5, 5); ctx.fill();
+                ctx.moveTo(-9, 5); ctx.lineTo(-14, 10); ctx.lineTo(-4, 5); ctx.fill();
 
-                // Thrust Flame
-                if (keys['ArrowUp'] && rocket.fuel > 0) {
-                    ctx.fillStyle = '#ff1a00';
-                    ctx.beginPath();
-                    ctx.moveTo(-10, -3);
-                    ctx.lineTo(-25 - Math.random()*10, 0);
-                    ctx.lineTo(-10, 3);
-                    ctx.fill();
-                }
                 ctx.restore();
             } else {
-                ctx.fillStyle = '#ff5500';
+                // Fireball Crash Graphic Explosion Effect
+                ctx.fillStyle = '#ff3300';
+                ctx.shadowColor = '#ffaa00';
+                ctx.shadowBlur = 15;
                 ctx.beginPath();
-                ctx.arc(rocket.x, rocket.y, 15, 0, Math.PI*2);
+                ctx.arc(rocket.x, rocket.y, 18, 0, Math.PI*2);
                 ctx.fill();
+                ctx.shadowBlur = 0; // Reset canvas shadow parameters
             }
         }
 
@@ -388,6 +450,8 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // Run Initial Core Boot sequence
+        resetGame();
         gameLoop();
     </script>
 </body>
