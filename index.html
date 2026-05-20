@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Space Program: Destinations</title>
+    
+    <!-- FAVICON INTEGRATION LINK CODE -->
     <link rel="icon" type="image/png" href="favicon.png">
+    
     <style>
         body {
             margin: 0;
@@ -146,10 +149,10 @@
     <canvas id="gameCanvas"></canvas>
 
     <div class="ui-layer">
-        <!-- Main Menu Layout (Explicit Targets Added) -->
+        <!-- Main Menu -->
         <div id="mainMenu" class="screen">
             <h1>Mini Space Program</h1>
-            <p>Select Destination (Real 0-G & Low Thrust Inertia)</p>
+            <p>Select Destination (Real 0-G & Heavy Inertia Physics)</p>
             
             <div class="mode-container">
                 <button class="btn" onclick="launchMission('EARTH')">🌍 MISSION: EARTH ORBIT</button>
@@ -160,7 +163,7 @@
             <div class="controls-hint">
                 <strong>FLIGHT CONTROLS:</strong><br>
                 W / Up Arrow: Main Engine Thrust (Gradual Acceleration)<br>
-                A / D or Left / Right Arrow: Ship Rotation Wheel
+                A / D or Left / Right Arrow: Ship Rotation Control Wheel
             </div>
         </div>
 
@@ -174,12 +177,12 @@
             <div>Fuel Level: <span id="fuelVal">100</span>%</div>
         </div>
 
-        <!-- Dynamic Contextual Objective Tracker -->
+        <!-- Objective Tracker -->
         <div id="objective" class="hidden">
             <div id="objText">Objective initialized...</div>
         </div>
 
-        <!-- Pop-up Screen: Mission Failed Custom Specifications -->
+        <!-- Pop-up Screen: Mission Failed -->
         <div id="gameOverScreen" class="screen hidden">
             <h1 style="color: #ff3366;">MISSION FAILED</h1>
             <p id="overDesc">Your spacecraft was destroyed.</p>
@@ -211,7 +214,6 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Engine States
         const STATES = { MENU: 0, PLAYING: 1, GAMEOVER: 2, VICTORY: 3 };
         let gameState = STATES.MENU;
 
@@ -230,16 +232,14 @@
         window.addEventListener('keydown', e => keys[e.key] = true);
         window.addEventListener('keyup', e => keys[e.key] = false);
 
-        // Heavy Realism Configurations
         const ENGINE_THRUST = 0.11;
         const ROTATION_SPEED = 0.045;
 
-        // Interactive Objects
         let stars = [];
         let particles = [];
         let meteors = [];
 
-        // Build continuous starfield background configuration
+        // Generate static backdrop starfield
         for(let i=0; i<160; i++) {
             stars.push({
                 x: Math.random() * 3000 - 1500,
@@ -262,14 +262,11 @@
             }
         };
 
-        // Meteor Spawning Functionality 
         function spawnMeteors(planet) {
             meteors = [];
-            // Spawn fields strictly above atmospheric safe-zones up into deep space 
             let count = planet.name === "Earth" ? 18 : planet.name === "Moon" ? 28 : 24; 
             for(let i=0; i<count; i++) {
                 let angle = Math.random() * Math.PI * 2;
-                // Spacing interval between top layer of atmosphere and deep space boundary
                 let spawnRadius = planet.radius + planet.atmosphere + 60 + Math.random() * 400;
                 
                 meteors.push({
@@ -287,7 +284,6 @@
             gameState = STATES.PLAYING;
             currentPhase = PHASES.LAUNCH;
 
-            // UI Adjustments
             document.getElementById('mainMenu').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.add('hidden');
             document.getElementById('victoryScreen').classList.add('hidden');
@@ -329,7 +325,6 @@
             document.getElementById('overDesc').innerText = causeString;
             document.getElementById('gameOverScreen').classList.remove('hidden');
             
-            // Spawn massive wreckage visual effect particles
             for(let i=0; i<45; i++) {
                 particles.push({
                     x: rocket.x, y: rocket.y,
@@ -340,7 +335,6 @@
             }
         }
 
-        // Processing Logic Loop
         function loop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -348,7 +342,6 @@
             let pY = canvas.height / 2 + 100;
 
             ctx.save();
-            // Cam following math engine configuration
             if (gameState !== STATES.MENU) {
                 let camX = canvas.width/2 - (rocket.x * 0.4 + pX * 0.6);
                 let camY = canvas.height/2 - (rocket.y * 0.4 + pY * 0.6);
@@ -360,7 +353,7 @@
                 ctx.translate(-canvas.width/2 + camX, -canvas.height/2 + camY);
             }
 
-            // Draw Stars background processing
+            // Stars
             stars.forEach(star => {
                 let sX = star.x; let sY = star.y;
                 if(gameState === STATES.MENU) {
@@ -371,8 +364,7 @@
                 ctx.fillRect(sX, sY, star.size, star.size);
             });
 
-            // Planet Visual Assembly Processing
-            // 1. Air Glow
+            // Atmospheric Air Glow
             let atmosGlow = ctx.createRadialGradient(pX, pY, currentPlanet.radius, pX, pY, currentPlanet.radius + currentPlanet.atmosphere);
             atmosGlow.addColorStop(0, currentPlanet.atmosColor);
             atmosGlow.addColorStop(0.8, currentPlanet.atmosColor.replace('0.', '0.05'));
@@ -380,16 +372,16 @@
             ctx.fillStyle = atmosGlow;
             ctx.beginPath(); ctx.arc(pX, pY, currentPlanet.radius + currentPlanet.atmosphere, 0, Math.PI*2); ctx.fill();
 
-            // 2. Safe Orbit Line Element
+            // Safe Target Orbit Ring
             ctx.strokeStyle = currentPhase === PHASES.LAUNCH ? 'rgba(0, 200, 255, 0.12)' : 'rgba(0, 255, 150, 0.25)';
             ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(pX, pY, currentPlanet.radius + currentPlanet.safeOrbit, 0, Math.PI*2); ctx.stroke();
 
-            // 3. Planet Core
+            // Core Surface Planet Sphere
             let coreGrad = ctx.createRadialGradient(pX, pY, 10, pX, pY, currentPlanet.radius);
             coreGrad.addColorStop(0, currentPlanet.color1); coreGrad.addColorStop(1, currentPlanet.color2);
             ctx.fillStyle = coreGrad; ctx.beginPath(); ctx.arc(pX, pY, currentPlanet.radius, 0, Math.PI*2); ctx.fill();
 
-            // Handle Dynamic Particle Systems Updates
+            // Engine Smoke Particles
             for(let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.03;
                 if(p.life <= 0) { particles.splice(i, 1); } 
@@ -400,13 +392,12 @@
                 }
             }
 
-            // Calculations & Tracking Rules
             let dx = rocket.x - pX;
             let dy = rocket.y - pY;
             let distance = Math.hypot(dx, dy);
             let altitude = distance - currentPlanet.radius;
 
-            // Zero-G Physics Core Tapering Logic 
+            // Gravity Curve Calculations
             let gravityMultiplier = 0;
             if (altitude < currentPlanet.atmosphere) {
                 gravityMultiplier = (1 - (altitude / currentPlanet.atmosphere));
@@ -414,31 +405,26 @@
             let gravityPull = currentPlanet.gravity * gravityMultiplier;
             let angleToCore = Math.atan2(dy, dx);
 
-            // Update Obstacle Meteors Position Profiles & Visuals
+            // Obstacle Meteor Positions & Collisions
             meteors.forEach(met => {
                 met.x += met.vx; met.y += met.vy;
                 
-                // Keep them drifting within deep space bounds around target celestial body
                 let mDx = met.x - pX; let mDy = met.y - pY;
                 let mDist = Math.hypot(mDx, mDy);
                 if (mDist < currentPlanet.radius + currentPlanet.atmosphere + 20 || mDist > currentPlanet.radius + 900) {
-                    met.vx *= -1; met.vy *= -1; // Bounce back inward/outward
+                    met.vx *= -1; met.vy *= -1;
                 }
 
-                // Render Meteor Body
                 ctx.fillStyle = "#554e4a";
                 ctx.beginPath(); ctx.arc(met.x, met.y, met.radius, 0, Math.PI*2); ctx.fill();
-                // Cratering visual details
                 ctx.fillStyle = "#3a3532";
                 ctx.beginPath(); ctx.arc(met.x - met.radius*0.3, met.y - met.radius*0.2, met.radius*0.25, 0, Math.PI*2); ctx.fill();
             });
 
             if (gameState === STATES.PLAYING) {
-                // Apply Gravitational Forces
                 rocket.vx -= Math.cos(angleToCore) * gravityPull;
                 rocket.vy -= Math.sin(angleToCore) * gravityPull;
 
-                // Input Processors
                 if (keys['w'] || keys['ArrowUp']) {
                     if (rocket.fuel > 0) {
                         rocket.vx += Math.cos(rocket.angle) * ENGINE_THRUST;
@@ -452,12 +438,10 @@
 
                 rocket.x += rocket.vx; rocket.y += rocket.vy;
 
-                // Compute Speeds
                 let totalSpeed = Math.hypot(rocket.vx, rocket.vy) * 50;
                 let nx = dx / distance; let ny = dy / distance;
                 let verticalSpeed = (rocket.vx * nx + rocket.vy * ny) * 50;
 
-                // Sync UI displays
                 document.getElementById('altVal').innerText = Math.max(0, Math.floor(altitude));
                 document.getElementById('gravVal').innerText = gravityMultiplier.toFixed(2);
                 document.getElementById('speedVal').innerText = Math.floor(totalSpeed);
@@ -470,15 +454,13 @@
                 
                 document.getElementById('fuelVal').innerText = Math.ceil(rocket.fuel);
 
-                // Check and evaluate Meteor Interaction Physics
+                // Meteor Deflection / Critical Explosion Engine
                 meteors.forEach(met => {
                     let hitDist = Math.hypot(rocket.x - met.x, rocket.y - met.y);
                     if (hitDist < met.radius + 8) {
                         if (totalSpeed > 90) {
-                            // High Speed Impact Failure Trigger
-                            triggerFailure(`Impact Event! You hit a meteor at a catastrophic speed of ${Math.floor(totalSpeed)} m/s!`);
+                            triggerFailure(`Impact Event! You smashed into a meteor at a catastrophic velocity of ${Math.floor(totalSpeed)} m/s!`);
                         } else {
-                            // Slow Speeds: Deflect/Push physics interaction bounce
                             let bounceAngle = Math.atan2(rocket.y - met.y, rocket.x - met.x);
                             rocket.vx = Math.cos(bounceAngle) * 1.5;
                             rocket.vy = Math.sin(bounceAngle) * 1.5;
@@ -488,7 +470,7 @@
                     }
                 });
 
-                // Mission Phasing Evaluator
+                // Objective Manager Rules
                 let objBox = document.getElementById('objText');
                 if (currentPhase === PHASES.LAUNCH) {
                     objBox.innerHTML = `🎯 <b>Objective:</b> Thrust upwards! Escape the ${currentPlanet.name}'s atmospheric field threshold (${currentPlanet.atmosphere}km) to hit Zero-G.`;
@@ -502,7 +484,7 @@
                         objBox.innerHTML = `⏳ <b>Circularizing Orbit Trajectory...</b> Hold perfectly steady: ${Math.floor((60 - rocket.orbitTimer)/15)}s`;
                         if (rocket.orbitTimer >= 60) {
                             currentPhase = PHASES.STABILIZED;
-                            rocket.fuel = Math.min(100, rocket.fuel + 55); // Fuel bonus payload award
+                            rocket.fuel = Math.min(100, rocket.fuel + 55);
                         }
                     } else { rocket.orbitTimer = 0; }
                 } 
@@ -514,17 +496,17 @@
                     objBox.innerHTML = `🚨 <b>ATMOSPHERIC ENTRY ACTIVE!</b> Use counter-thrust engine burns to brake your descent and keep <b>Vertical Speed ABOVE -${currentPlanet.safeSpeed} m/s</b> right before touching down.`;
                 }
 
-                // Landing and Collision Boundary Engine
+                // Core Planetary Boundary Impacts
                 if (distance <= currentPlanet.radius + 8) {
                     if (currentPhase === PHASES.REENTRY || currentPhase === PHASES.LAUNCH) {
                         if (Math.abs(verticalSpeed) <= currentPlanet.safeSpeed) {
                             if (currentPhase === PHASES.REENTRY) {
                                 gameState = STATES.VICTORY;
-                                document.getElementById('victoryDesc').innerText = `Phenomenal piloting! You safely landed on the surface of ${currentPlanet.name} within safe deceleration structures.`;
+                                document.getElementById('victoryDesc').innerText = `Phenomenal piloting! You safely landed on the surface of ${currentPlanet.name} within safe structural parameters.`;
                                 document.getElementById('victoryScreen').classList.remove('hidden');
-                            } else { rocket.init(currentPlanet); } // Pad reset if lifting off unstable
+                            } else { rocket.init(currentPlanet); }
                         } else {
-                            triggerFailure(`Hard surface collision! You impacted the terrain at ${Math.floor(Math.abs(verticalSpeed))} m/s. Safe threshold for ${currentPlanet.name} is ${currentPlanet.safeSpeed} m/s.`);
+                            triggerFailure(`Hard surface collision! You impacted the terrain at ${Math.floor(Math.abs(verticalSpeed))} m/s. Safe structural threshold for ${currentPlanet.name} is ${currentPlanet.safeSpeed} m/s.`);
                         }
                     } else {
                         triggerFailure(`Ballistic Entry Failure! Your craft entered the planet core at terminal unchecked orbital velocity.`);
@@ -532,7 +514,7 @@
                 }
             }
 
-            // Render Rocket Craft Visual Matrix
+            // Rocket Body Graphics
             if (gameState !== STATES.GAMEOVER) {
                 ctx.save();
                 ctx.translate(rocket.x, rocket.y); ctx.rotate(rocket.angle);
@@ -551,7 +533,6 @@
             requestAnimationFrame(loop);
         }
 
-        // Boot system loop execution
         requestAnimationFrame(loop);
     </script>
 </body>
